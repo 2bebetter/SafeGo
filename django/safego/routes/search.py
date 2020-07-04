@@ -3,6 +3,8 @@ from django.shortcuts import render
 from django.views.decorators import csrf #在处理post请求的时候一定要加上
 from cal_risk.cal_risk import *
 from KBQA_AC.chatbot import ChatBotGraph
+
+import logging
 # 响应对象主要有三种形式：HttpResponse(),render(),redirect()
 # render和redirect都是对HttpResponse的封装
 # render(request,页面，字典（可选，主要传的是参数））
@@ -32,9 +34,10 @@ def search_get(request):
 def search_advise(request):
     global ctx
     global handler
-    if request.POST:
-        question=request.POST['q']
-        print(question)
+    parameter_json = request.body
+    parameter = json.loads(parameter_json)
+    if parameter:
+        question=parameter.get('question')
         answer = handler.chat_main(question)
         ctx['answer']=answer
         ctx['question']=question
@@ -43,9 +46,11 @@ def search_advise(request):
 
 def search_risk(request):
     global ctx
-    if request.POST:
-        address = request.POST.get('address')
-        city = request.POST.get('city')
+    parameter_json = request.body
+    parameter = json.loads(parameter_json)
+    if parameter:
+        address = parameter.get('address')
+        city = parameter.get('city')
         ctx['address']=address
         ctx['city']=city
         risk = cal_risk_from_name(address, city)
@@ -57,8 +62,6 @@ def search_risk(request):
         else:
             strrisk='高风险'
         ctx['risk']=strrisk
-        print(address,city,risk)
-        print(json.dumps(ctx))
     return HttpResponse(json.dumps(ctx), content_type="application/json,charset=utf-8")
 
 
