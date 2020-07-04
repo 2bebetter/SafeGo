@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from safego.models import Test #导入数据表
+from routes.models import Test, Question #导入数据表
 
 def querydb(request):
     # 初始化
