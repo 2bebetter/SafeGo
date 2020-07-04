@@ -19,10 +19,11 @@ export class AddressFormComponent {
   active = true;
   onAddressSubmit(addressForm:any){
     var url='http://localhost:8000/search_risk/';
-    //console.log(addressForm);
+    //console.log(addressForm.value);
     var data = addressForm.value;
-    data = this.http.post(url, data).subscribe(response => {
-      alert(response['message']);
+    this.http.post(url, data).subscribe(response => {
+      console.log(response);
+      alert(response['risk']);
     });
   }
 }

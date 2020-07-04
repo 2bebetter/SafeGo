@@ -19,10 +19,10 @@ export class QuestionFormComponent {
   active = true;
   onQuestionSubmit(questionForm:any){
     var url='http://localhost:8000/search_advise/';
-    //console.log(addressForm);
     var data = questionForm.value;
     data = this.http.post(url, data).subscribe(response => {
-      alert(response['message']);
+      console.log(response);
+      alert(response['answer']);
     });
   }
 }
