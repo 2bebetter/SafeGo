@@ -38,7 +38,7 @@ def search_advise(request):
         answer = handler.chat_main(question)
         ctx['answer']=answer
         ctx['question']=question
-    return render(request,"search_form.html",ctx)
+    return HttpResponse(json.dumps(ctx), content_type="application/json,charset=utf-8")
 
 
 def search_risk(request):
@@ -58,7 +58,8 @@ def search_risk(request):
             strrisk='高风险'
         ctx['risk']=strrisk
         print(address,city,risk)
-    return render(request, "search_form.html", ctx)
+        print(json.dumps(ctx))
+    return HttpResponse(json.dumps(ctx), content_type="application/json,charset=utf-8")
 
 
 
