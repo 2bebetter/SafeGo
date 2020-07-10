@@ -5,6 +5,7 @@ from cal_risk.cal_risk import *
 from KBQA_AC.chatbot import ChatBotGraph
 
 import logging
+import socket
 # 响应对象主要有三种形式：HttpResponse(),render(),redirect()
 # render和redirect都是对HttpResponse的封装
 # render(request,页面，字典（可选，主要传的是参数））
@@ -12,28 +13,24 @@ import logging
 
 ctx={}
 handler = ChatBotGraph()
-
-# 接收请求数据
-def search_get(request):
-    global ctx
-
-    request.encoding = 'utf-8'
-    if 'q' in request.GET and request.GET['q']: #GET和POST属性都是django.http.QueryDict类的实例，这相当于dict自定义的一个类，可以单键多值
-
-        message = '你搜索的内容为: ' + request.GET['q']
-    else:
-        message = '你提交了空表单'
-    ctx['rlt1']=message
-    return render(request,"search_form.html",ctx)
+tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+bot_address = ('127.0.0.1', 8002)
+tcp_socket.connect(bot_address)
 
 def search_advise(request):
     global ctx
-    global handler
     parameter_json = request.body
     parameter = json.loads(parameter_json)
     if parameter:
         question=parameter.get('question')
-        answer = handler.chat_main(question)
+        # send question to predict_online
+        tcp_socket.send(question.encode('utf-8'))
+        # deleted AC: answer = handler.chat_main(question)
+
+        # get answer from predict_online
+        answer = tcp_socket.recv(1024)
+        print(answer)
+        print(question)
         ctx['answer']=answer
         ctx['question']=question
     return HttpResponse(json.dumps(ctx), content_type="application/json,charset=utf-8")
@@ -70,7 +67,12 @@ def search_simple(request):
         ctx['address']=address
         city='北京'
         risk = cal_risk_from_name(address, city)
-        answer = handler.chat_main(address+'防控建议')
+        # answer = handler.chat_main(address+'防控建议')
+        # send question to predict_online
+        tcp_socket.send((address+'防控意见').encode('utf-8'))
+
+        # get answer from predict_online
+        answer = tcp_socket.recv(1024)
         ctx['answer']=answer
         strrisk = ''
         if (risk == 0):
@@ -98,7 +100,12 @@ def search_detail(request):
         real_address=detail_address.split('市')[-1]
         print(real_address)
         risk = cal_risk_from_name(real_address, city)
-        answer = handler.chat_main(detail_address+'防控建议')
+        # answer = handler.chat_main(detail_address+'防控建议')
+        # send question to predict_online
+        tcp_socket.send((detail_address+'防控意见').encode('utf-8'))
+
+        # get answer from predict_online
+        answer = tcp_socket.recv(1024)
         ctx['answer'] = answer
         strrisk = ''
         if (risk == 0):
@@ -111,11 +118,3 @@ def search_detail(request):
             strrisk='查询不到,请检查输入的地址！'
         ctx['risk'] = strrisk
     return HttpResponse(json.dumps(ctx), content_type="application/json,charset=utf-8")
-
-
-
-
-
-
-
-
